@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-config
+  namespace: default
+data:
+  logstash.conf: |
+    input {
+      file {
+        path => "/data/logs/*.log"  # find location inside logstash pod
+        start_position => "beginning"
+        sincedb_path => "/dev/null"
+      }
+    }
+
+    output {
+      elasticsearch {
+        hosts => ["http://elasticsearch:9200"]
+        index => "app-logs-%{+YYYY.MM.dd}"
+      }
+      stdout { codec => rubydebug }
+    }

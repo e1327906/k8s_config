@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch
+  namespace: default
+  labels:
+    app: elasticsearch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      containers:
+        - name: elasticsearch
+          image: docker.elastic.co/elasticsearch/elasticsearch:8.15.2
+          env:
+            - name: discovery.type
+              value: "single-node"  # Single-node for development
+            - name: network.host
+              value: "0.0.0.0"  # Allow connections from all IPs
+            - name: "xpack.security.enabled"
+              value: "false"  # Disable security features for development
+            - name: "xpack.security.http.ssl.enabled"
+              value: "false"  # Disable HTTPS if using HTTP
+          ports:
+            - containerPort: 9200  # HTTP port
+            - containerPort: 9300  # Transport port
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  namespace: default
+spec:
+  selector:
+    app: elasticsearch
+  ports:
+    - name: http
+      port: 9200
+      targetPort: 9200
+    - name: transport
+      port: 9300
+      targetPort: 9300
+  type: ClusterIP  # Keep it as ClusterIP unless you need NodePort or LoadBalancer

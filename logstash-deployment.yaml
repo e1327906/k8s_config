@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash
+  namespace: default
+  labels:
+    app: logstash
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: logstash
+  template:
+    metadata:
+      labels:
+        app: logstash
+    spec:
+      containers:
+        - name: logstash
+          image: docker.elastic.co/logstash/logstash:8.5.0
+          ports:
+            - containerPort: 5044
+          volumeMounts:
+            - name: log-volume
+              mountPath: /data  # Mount path in Logstash container matching your app's log mount path
+            - name: logstash-pipeline
+              mountPath: /usr/share/logstash/pipeline
+      volumes:
+        - name: log-volume
+          persistentVolumeClaim:
+            claimName: log-pvc  # Use the same PVC as your app
+        - name: logstash-pipeline
+          configMap:
+            name: logstash-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: logstash
+  namespace: default
+spec:
+  selector:
+    app: logstash
+  ports:
+    - name: logstash
+      port: 5044
+      targetPort: 5044
+  type: ClusterIP
