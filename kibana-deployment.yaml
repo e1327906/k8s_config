@@ -36,5 +36,4 @@ spec:
     - name: http
       port: 5601
       targetPort: 5601
-      nodePort: 32353  # NodePort for external access
-  type: NodePort  # Exposes the service externally
+  type: LoadBalancer  # Exposes the service externally
